@@ -1,4 +1,4 @@
-from auxiliar_functions import *
+from utils import *
 from scipy.optimize import curve_fit
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,14 +24,8 @@ class RM_correction:
 
     def __init__(self, planet_params:dict, time:np.array, CCFs:np.array, model:str, plot_fits:bool, plot_rm:bool, save=None):
 
-        if model == "Dravins":
-            model_fit = modified_gaussian
-        elif model == "Gaussian":
-            model_fit = gaussian
-        elif model == "Lorentzian":
-            model_fit = lorentzian
-
-        phases, tr_dur, tr_ingress_egress, in_indices, out_indices = get_phase(planet_params, time)
+        phase_mu = get_phase_mu(planet_params, time)
+        phases, tr_dur, tr_ingress_egress, in_indices, out_indices = phase_mu.phases, phase_mu.tr_dur, phase_mu.tr_ingress_egress, phase_mu.in_indices, phase_mu.out_indices
 
         y0 = np.zeros((CCFs.shape[0],2))
         x0 = np.zeros((CCFs.shape[0],2))
@@ -42,15 +36,18 @@ class RM_correction:
             de = CCFs[i,1]
             rv = CCFs[i,2]
 
-            if model == "Dravins":
+            if model == "modified Gaussian":
+                model_fit = profile_models(model).model
                 p0          = [np.max(d),           0,        1, np.max(d)-np.min(d),       1] #y0, x0, sigma, a, c
                 upper_bound = [   np.inf,  np.max(rv),   np.inf,              np.inf,  np.inf]
                 lower_bound = [        0,  np.min(rv),        0,                   0,       0]
             elif model == "Gaussian":
+                model_fit = profile_models(model).model
                 p0          = [np.max(d),           0,        1, np.max(d)-np.min(d)] #y0, x0, sigma, a
                 upper_bound = [   np.inf,  np.max(rv),   np.inf,              np.inf]
                 lower_bound = [        0,  np.min(rv),        0,                   0]
             elif model == "Lorentzian":
+                model_fit = profile_models(model).model
                 p0          = [np.max(d),           0,        1, np.max(d)-np.min(d)] #y0, x0, gamma, a
                 upper_bound = [   np.inf,  np.max(rv),   np.inf,              np.inf]
                 lower_bound = [        0,  np.min(rv),        0,                   0]
@@ -115,14 +112,14 @@ class RM_correction:
         axes[1].grid()
         axes[1].set_axisbelow(True)
 
-        labels = ['ingress+egress','middle of transit','in transit','out of transit','out of transit linear fit']
-        fig.legend([l0,l1,l2,l3,l4], labels=labels, loc='lower center',ncol=5, bbox_to_anchor=(0.5, -0.12))
+        labels = ['Partially in transit','Fully in transit','out of transit linear fit']
+        fig.legend([l0,l1,l4], labels=labels, loc='lower center',ncol=3, bbox_to_anchor=(0.5, -0.12))
         fig.suptitle('Central values of CCFs',fontsize=19)
 
         plt.tight_layout()
 
         if save:
-            plt.savefig(save)
+            plt.savefig(save+"RM_correction.pdf", dpi=300, bbox_inches="tight")
 
         plt.show()
 

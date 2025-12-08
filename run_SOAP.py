@@ -2,10 +2,11 @@ import SOAP # type: ignore
 from ldtk import LDPSetCreator, BoxcarFilter
 import matplotlib.pyplot as plt
 import numpy as np
-from auxiliar_functions import get_phase
+from utils import *
 
 class run_SOAP:
     """
+    Wrapper around SOAPv4.
     Simulate transit light curve using SOAPv4 (Cristo, E., et al. 2025) to calibrate the local spectra flux.
     Uses Limb darkening toolkit (ldtk) to compute the limb-darkening coefficients.
     
@@ -39,7 +40,8 @@ class run_SOAP:
         inc_planet = planet_params["inc_planet"]
         lbda       = planet_params["lbda"]
 
-        phases, tr_dur, tr_ingress_egress, _, _ = get_phase(planet_params, time)
+        phase_mu = get_phase_mu(planet_params, time)
+        phases, tr_dur, tr_ingress_egress = phase_mu.phases, phase_mu.tr_dur, phase_mu.tr_ingress_egress
 
         filters = [BoxcarFilter('filter', min_wav, max_wav)] 
         sc = LDPSetCreator(teff=(Teff, Teff_err), logg = (logg, logg_err), z = (FeH, FeH_err), filters=filters)
