@@ -3,16 +3,21 @@ from utils import *
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-from RM_correction import RM_correction
+from sysvel_correction import sysvel_correction
 from run_SOAP import run_SOAP
 from scipy.optimize import curve_fit
+from nested_sampling import run_nestedsampler
 
 class HECATE:
 
     def __init__(self, planet_params:dict, stellar_params:dict, time:np.array, CCFs:np.array):
 
         phase_mu = get_phase_mu(planet_params, time)
-        self.phases, self.phases_in_indices, self.phases_out_indices = phase_mu.phases, phase_mu.in_indices, phase_mu.out_indices
+        self.phases = phase_mu.phases
+        self.phases_in_indices = phase_mu.in_indices
+        self.phases_out_indices = phase_mu.out_indices
+        self.tr_dur = phase_mu.tr_dur
+        self.tr_ingress_egress = phase_mu.tr_ingress_egress
         self.in_phases = self.phases[np.isin(np.arange(len(self.phases)), self.phases_in_indices)]
         
         self.planet_params = planet_params
@@ -20,8 +25,7 @@ class HECATE:
         
         self.time = time
         self.CCFs = CCFs
-        
-
+            
 
     def _extract_local_CCF(self, RV_reference:np.array, model_fit:str, ccf_type:str, plot:dict, save):
         """
@@ -32,8 +36,8 @@ class HECATE:
         #simulated light curve
         Flux_SOAP = run_SOAP(self.time, self.stellar_params, self.planet_params, plot=plot["SOAP"]).flux
 
-        #Rossiter-McLaughlin effect correction
-        rm_corr = RM_correction(self.planet_params, self.time, self.CCFs, model=model_fit, plot_fits=plot["fits_initial_CCF"], plot_rm=plot["RM"])
+        #systemic velocity correction
+        rm_corr = sysvel_correction(self.planet_params, self.time, self.CCFs, model=model_fit, plot_fits=plot["fits_initial_CCF"], plot_rm=plot["RM"])
         CCFs_RM_corr = rm_corr.CCFs_RM_corr
 
         #average out-of-transit CCF
@@ -97,6 +101,10 @@ class HECATE:
             axes[0].set_xticklabels([])
 
             im = axes[1].imshow(CCFs_sub_all[:,0], cmap='jet', extent=[RV_reference.min(), RV_reference.max(), phases.min(), phases.max()], aspect='auto', origin='lower')
+            axes[1].axhline(-self.tr_dur/2, lw=1.5, ls="--", color="white")
+            axes[1].axhline(self.tr_dur/2, lw=1.5, ls="--", color="white")
+            axes[1].axhline(self.tr_ingress_egress/2-self.tr_dur/2, lw=1.5, ls="--", color="white")
+            axes[1].axhline(-self.tr_ingress_egress/2+self.tr_dur/2, lw=1.5, ls="--", color="white")
             
             axes[1].set_xlabel('Radial Velocities [km/s]')
             axes[1].set_ylabel('Orbital Phase')
@@ -214,7 +222,10 @@ class HECATE:
                 phase = None
                 CCF = CCFs
 
-            central_rv, continuum, depth, width, R2 = self._fit_CCF(phase, CCF, ccf_type, model, print_output, plot_fit, save)
+            try:
+                central_rv, continuum, depth, width, R2 = self._fit_CCF(phase, CCF, ccf_type, model, print_output, plot_fit, save)
+            except:
+                central_rv, continuum, depth, width, R2 = [np.nan, np.nan], [np.nan, np.nan], [np.nan, np.nan], [np.nan, np.nan], np.nan
             
             central_rv_array[i,0], central_rv_array[i,1] = central_rv[0], central_rv[1]
             continuum_array[i,0], continuum_array[i,1] = continuum[0], continuum[1]
@@ -332,3 +343,152 @@ class HECATE:
             plt.show()
 
         return central_rv, continuum, depth, width, R2
+    
+
+
+    def _plot_local_params(self, indices_final, local_params, master_params, linear_fit=False, plot_nested=False, save=None):
+
+        
+        titles = ['Central Radial Velocity [km/s]', 'Line-width measure [km/s]', 'Line-center intensity [%]']
+        ylabels = ["[km/s]", "[km/s]", "[%]"]
+
+        mu_min = get_phase_mu.mu(self.tr_dur/2-self.tr_ingress_egress/2, self.planet_params)
+        mu_max = get_phase_mu.mu(0, self.planet_params)
+
+        orb_range = [-self.tr_dur/2, self.tr_dur/2]
+        mu_range = [0, mu_max]
+
+        ph = self.in_phases[indices_final]
+        mu_in = get_phase_mu.mu(self.in_phases, self.planet_params)
+        mu = mu_in[indices_final]
+
+        if linear_fit:
+            fig_ph, axes_ph = plt.subplots(nrows=2, ncols=3, figsize=(16,7))
+            fig_mu, axes_mu = plt.subplots(nrows=2, ncols=3, figsize=(16,7))
+        else: 
+            fig_ph, axes_ph = plt.subplots(nrows=1, ncols=3, figsize=(16,4.2))
+            fig_mu, axes_mu = plt.subplots(nrows=1, ncols=3, figsize=(16,4.2))
+
+        for i in range(len(ylabels)):
+
+            if linear_fit: 
+                plot_index = (0,i)
+            else: 
+                plot_index = (i)
+                axes_ph[plot_index].set_xlabel("Orbital phases")
+                axes_mu[plot_index].set_xlabel(r"$\mu$")
+            
+            axes_ph[plot_index].set_title(titles[i], fontsize=17)
+            
+            l0=axes_ph[plot_index].axvspan(-self.tr_dur/2, self.tr_dur/2, alpha=0.3, color='orange')
+            l1=axes_ph[plot_index].axvspan(self.tr_ingress_egress/2-self.tr_dur/2, self.tr_dur/2-self.tr_ingress_egress/2, alpha=0.4, color='orange')
+            l2=axes_ph[plot_index].axhline(y=master_params[i][:,0], color='blue', linestyle='-', lw=2, zorder=1)
+            axes_ph[plot_index].scatter(ph, local_params[i][:,0][indices_final],color='blue',s=60)
+            axes_ph[plot_index].errorbar(x=ph, y=local_params[i][:,0][indices_final], yerr=local_params[i][:,1][indices_final], capsize=6, capthick=0.5, color='black', linewidth=0, elinewidth=2)
+            axes_ph[plot_index].set_ylabel("Value " + ylabels[i], fontsize=15)
+            axes_ph[plot_index].grid()
+            axes_ph[plot_index].set_axisbelow(True)
+            axes_ph[plot_index].set_xlim(orb_range)
+
+            axes_mu[plot_index].set_title(titles[i], fontsize=17)
+
+            l0=axes_mu[plot_index].axvspan(0, mu_max, alpha=0.3, color='orange')
+            l1=axes_mu[plot_index].axvspan(mu_min, mu_max, alpha=0.4, color='orange')
+            l2=axes_mu[plot_index].axhline(y=master_params[i][:,0], color='blue', linestyle='-', lw=2, zorder=1)
+            axes_mu[plot_index].scatter(mu, local_params[i][:,0][indices_final], color='blue', s=60)
+            axes_mu[plot_index].errorbar(x=mu, y=local_params[i][:,0][indices_final], yerr=local_params[i][:,1][indices_final], capsize=6, capthick=0.5, color='black', linewidth=0, elinewidth=2)
+            axes_mu[plot_index].set_ylabel("Value " + ylabels[i], fontsize=15)
+            axes_mu[plot_index].grid()
+            axes_mu[plot_index].set_axisbelow(True)
+            axes_mu[plot_index].set_xlim(mu_range)
+
+            if linear_fit:
+                print("="*30)
+                print(titles[i])
+
+                if i == 0: m_span = 1000; b_span = 10
+                elif i == 1: m_span = 100; b_span = 100
+                elif i == 2: m_span = 100; b_span = 100
+
+                print("-"*30)
+                print("Orbital phases")
+                
+                phases_nested = run_nestedsampler(ph, local_params[i][:,0][indices_final], local_params[i][:,1][indices_final], m_span, b_span, plot=plot_nested).results
+                lin_ph, model_ph, logZ_ph = phases_nested[0], phases_nested[1], phases_nested[-1]
+
+                x_grid = np.linspace(ph.min(), ph.max(), 100)
+                if model_ph == "zero":
+                    y_fit = lin_ph["b"][0] * np.ones_like(ph)
+                    dy_fit = np.sqrt(lin_ph["b"][1]**2)
+                    y_grid = lin_ph["b"][0] * np.ones_like(x_grid)
+                    dy_grid = np.sqrt(lin_ph["b"][1]**2) * np.ones_like(x_grid)
+                else:
+                    y_fit = lin_ph["m"][0]*ph + lin_ph["b"][0]
+                    dy_fit = np.sqrt((ph * lin_ph["m"][1])**2 + lin_ph["b"][1]**2)
+                    y_grid = lin_ph["m"][0]*x_grid + lin_ph["b"][0]
+                    dy_grid = np.sqrt((x_grid*lin_ph["m"][1])**2 + lin_ph["b"][1]**2)
+
+                residual = local_params[i][:,0][indices_final] - y_fit
+                residual_err = np.sqrt(local_params[i][:,1][indices_final]**2 + dy_fit**2)
+
+                axes_ph[0,i].plot(ph, y_fit, color='blue', linestyle='--')
+                axes_ph[0,i].fill_between(x_grid, y_grid-dy_grid, y_grid+dy_grid, color='gray', alpha=0.2, zorder=1)
+
+                axes_ph[1,i].axvspan(-self.tr_dur/2, self.tr_dur/2, alpha=0.3, color='orange')
+                axes_ph[1,i].axvspan(self.tr_ingress_egress/2 - self.tr_dur/2, self.tr_dur/2 - self.tr_ingress_egress/2, alpha=0.4, color='orange')
+                axes_ph[1,i].scatter(ph, residual, color='blue', s=50)
+                axes_ph[1,i].errorbar(x=ph, y=residual, yerr=residual_err, capsize=5, capthick=0.5, color='black', linewidth=0, elinewidth=2)
+                axes_ph[1,i].set_xlabel("Orbital phases")
+                axes_ph[1,i].grid()
+                axes_ph[1,i].set_axisbelow(True)
+                axes_ph[1,i].set_xlim(orb_range)
+                axes_ph[1,i].set_ylim([-2*np.max(np.abs(residual)), 2*np.max(np.abs(residual))])
+                axes_ph[1,i].axhline(0, lw=1, ls="--", color="black")
+                axes_ph[1,i].set_ylabel("Residuals " + ylabels[i])
+
+                print("-"*30)
+                print("mu")
+                mu_nested = run_nestedsampler(mu, local_params[i][:,0][indices_final], local_params[i][:,1][indices_final], plot=plot_nested).results
+                lin_mu, model_mu, logZ_mu = mu_nested[0], mu_nested[1], mu_nested[-1]
+
+                x_grid = np.linspace(mu.min(), mu.max(), 100)
+                if model_mu == "zero":
+                    y_fit = lin_mu["b"][0] * np.ones_like(mu)
+                    dy_fit = np.sqrt(lin_mu["b"][1]**2)
+                    y_grid = lin_mu["b"][0] * np.ones_like(x_grid)
+                    dy_grid = np.sqrt(lin_mu["b"][1]**2) * np.ones_like(x_grid)
+                else:
+                    y_fit = lin_mu["m"][0]*mu + lin_mu["b"][0]
+                    dy_fit = np.sqrt((mu * lin_mu["m"][1])**2 + lin_mu["b"][1]**2)
+                    y_grid = lin_mu["m"][0]*x_grid + lin_mu["b"][0]
+                    dy_grid = np.sqrt((x_grid*lin_mu["m"][1])**2 + lin_mu["b"][1]**2)
+
+                residual = local_params[i][:,0][indices_final] - y_fit
+                residual_err = np.sqrt(local_params[i][:,1][indices_final]**2 + dy_fit**2)
+
+                axes_mu[0,i].plot(mu, y_fit, color='blue', linestyle='--')
+                axes_mu[0,i].fill_between(x_grid, y_grid-dy_grid, y_grid+dy_grid, color='gray', alpha=0.2, zorder=1)
+
+                axes_mu[1,i].axvspan(0, mu_max, alpha=0.3, color='orange')
+                axes_mu[1,i].axvspan(mu_min, mu_max, alpha=0.4, color='orange')
+                axes_mu[1,i].scatter(mu, residual, color='blue', s=50)
+                axes_mu[1,i].errorbar(x=mu, y=residual, yerr=residual_err, capsize=5, capthick=0.5, color='black', linewidth=0, elinewidth=2)
+                axes_mu[1,i].set_xlabel(r"$\mu$")
+                axes_mu[1,i].grid()
+                axes_mu[1,i].set_axisbelow(True)
+                axes_mu[1,i].set_xlim(mu_range)
+                axes_mu[1,i].set_ylim([-2*np.max(np.abs(residual)), 2*np.max(np.abs(residual))])
+                axes_mu[1,i].axhline(0, lw=1, ls="--", color="black")
+                axes_mu[1,i].set_ylabel("Residuals " + ylabels[i])
+
+        labels = ['Partially in-transit','Fully in-transit','Master out of transit']
+        fig_ph.legend([l0,l1,l2], labels=labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.07), fontsize=15)
+        fig_mu.legend([l0,l1,l2], labels=labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.07), fontsize=15)
+        fig_ph.tight_layout()
+        fig_mu.tight_layout()
+
+        if save:
+            fig_ph.savefig(save+"local_parameters_phases.pdf", dpi=400)
+            fig_mu.savefig(save+"local_parameters_mu.pdf", dpi=400)
+
+        plt.show()

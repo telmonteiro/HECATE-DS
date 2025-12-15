@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 from astropy.io import fits
 import os
 import glob
 from utils import get_phase_mu
-from matplotlib.colors import Normalize
 
-def get_CCFs(planet_params, directory_path='Eduardos_code/white_light_ccfs/', day='2021-08-11', index_to_remove="last", plot=True):
+def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_ccfs/', day:str='2021-08-11', index_to_remove:str="last", plot:bool=True):
 
     listfiles = glob.glob(os.path.join(directory_path, '*.fits'))
 
@@ -74,7 +74,7 @@ def get_CCFs(planet_params, directory_path='Eduardos_code/white_light_ccfs/', da
     return CCFs, time, airmass, berv, bervmax, snr, list_ccfs
 
 
-def get_spectra(directory_path='Eduardos_code/telluric_corrected_spectra/', day='2021-08-11', index_to_remove="last"):
+def get_spectra(directory_path:str='Eduardos_code/telluric_corrected_spectra/', day:str='2021-08-11', index_to_remove:str="last"):
 
     listfiles = glob.glob(os.path.join(directory_path, '*.fits'))
 
@@ -121,7 +121,7 @@ def get_spectra(directory_path='Eduardos_code/telluric_corrected_spectra/', day=
 
 
 
-def plot_air_snr(planet_params, time, airmass, snr, save=None):
+def plot_air_snr(planet_params:dict, time:np.array, airmass:np.array, snr:np.array, save=None):
 
     phase_mu = get_phase_mu(planet_params, time)
     phases, tr_dur, tr_ingress_egress = phase_mu.phases, phase_mu.tr_dur, phase_mu.tr_ingress_egress

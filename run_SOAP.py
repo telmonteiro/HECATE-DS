@@ -48,7 +48,7 @@ class run_SOAP:
         ps = sc.create_profiles() #create the limb darkening profiles
         ldcn, _ = ps.coeffs_qd(do_mc=True) #coefficients and quadratic profile errors
 
-        sim = SOAP.Simulation() #light curve
+        sim = SOAP.Simulation(active_regions=[]) #light curve
         sim.star.set(prot=P_rot, incl=inc_star, radius=R_star, teff=Teff, u1=ldcn[0,0], u2=ldcn[0,1])
         sim.planet.set(P=P_orb, t0=0, e=e, w=w, ip=inc_planet, lbda=lbda, a=a_R, Rp=Rp_Rs)
 

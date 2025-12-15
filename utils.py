@@ -3,7 +3,7 @@ from scipy.sparse import lil_matrix
 
 #profile models
 class profile_models:
-    def __init__(self, model):
+    def __init__(self, model:str):
 
         if model == "modified Gaussian":
             self.model = self.modified_gaussian
@@ -34,7 +34,7 @@ class profile_models:
 
 class get_phase_mu:
 
-    def __init__(self, planet_params, time):
+    def __init__(self, planet_params:dict, time:np.array):
 
         phases, tr_dur, tr_ingress_egress, in_indices, out_indices = self.get_phase(planet_params, time)
         mu_values = self.mu(phases, planet_params)
@@ -46,7 +46,7 @@ class get_phase_mu:
         self.out_indices = out_indices
         self.mu_values = mu_values
 
-    def get_phase(self, planet_params, time):
+    def get_phase(self, planet_params:dict, time:np.array):
         t0         = planet_params["t0"]
         dfp        = planet_params["dfp"]
         P_orb      = planet_params["P_orb"]
@@ -68,7 +68,7 @@ class get_phase_mu:
         return phases, tr_dur, tr_ingress_egress, in_indices, out_indices
 
     @staticmethod
-    def mu(phases, planet_params):
+    def mu(phases, planet_params:dict):
         inc_planet = planet_params["inc_planet"]
         a_R        = planet_params["a_R"]
         #impact parameter

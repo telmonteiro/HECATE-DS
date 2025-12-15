@@ -6,7 +6,7 @@ from dynesty import plotting as dyplot
 
 class run_nestedsampler:
     
-    def __init__(self, x, y, yerr, m_span=100, b_span=100, verbose=True, plot=True, save=None):
+    def __init__(self, x:np.array, y:np.array, yerr:np.array, m_span:int=100, b_span:int=100, verbose:bool=True, plot:bool=True, save=None):
 
         self.x = x
         self.y = y
@@ -14,7 +14,7 @@ class run_nestedsampler:
         self.m_span = 100
         self.b_span = 100
 
-        resA, resB, resPos, resNeg, model = self.compare_models(x, y, yerr, m_span, b_span)
+        resA, resB, resPos, resNeg, model, logK_linear_vs_const, logK_sign, logZ = self.compare_models(x, y, yerr, m_span, b_span)
 
         if model == "zero":
             result = resB
@@ -27,35 +27,38 @@ class run_nestedsampler:
         weights = np.exp(result.logwt - result.logz[-1])
         samples = result.samples
         posterior_samples = resample_equal(samples, weights)
-
-        labels = ["m", "b", "ln_f"]
-
+        
         linear_fit_params = {}
         if model != "zero":
-            print("Linear fit parameters:")
-            for i, label in enumerate(labels):
-                q50 = np.percentile(posterior_samples[:, i], 50)
-                q16 = np.percentile(posterior_samples[:, i], 16)
-                q84 = np.percentile(posterior_samples[:, i], 84)
-                linear_fit_params[label] = [q50, np.mean([q84-q50,q50-q16])]
-                if verbose:
-                    print(f"{label} = {q50} +/- {np.mean([q84-q50,q50-q16])}")
-                    
-        if plot:
-            fig, _ = dyplot.traceplot(result, labels=labels, fig=plt.subplots(3, 2, figsize=(8, 6)))
-            fig.tight_layout()
-            if save: fig.savefig(save+"traceplot.pdf", dpi=300)
-            
-            fig, _ = dyplot.cornerplot(result, show_titles=True, labels=labels, fig=plt.subplots(3, 3, figsize=(7, 7)), quantiles=(0.16,0.5,0.84), title_quantiles=[0.16,0.5,0.84])
-            if save: fig.savefig(save+"cornerplot.pdf", dpi=300)
+            labels = ["m", "b", "ln_f"]
+        else:
+            labels = ["b", "ln_f"]
 
-            plt.show()
+        print("Linear fit parameters:")
+        for i, label in enumerate(labels):
+            q50 = np.percentile(posterior_samples[:, i], 50)
+            q16 = np.percentile(posterior_samples[:, i], 16)
+            q84 = np.percentile(posterior_samples[:, i], 84)
+            linear_fit_params[label] = [q50, np.mean([q84-q50,q50-q16])]
+            if verbose:
+                print(f"{label} = {q50:.06f} +/- {np.mean([q84-q50,q50-q16]):.06f}")
+        print("-"*30)
+                
+        if plot:
+            fig, _ = dyplot.traceplot(result, labels=labels, fig=plt.subplots(len(labels), 2, figsize=(8, 6)))
+            fig.tight_layout()
+            if save: 
+                fig.savefig(save+"traceplot.pdf", dpi=300)
+            
+            fig, _ = dyplot.cornerplot(result, show_titles=True, labels=labels, fig=plt.subplots(len(labels), len(labels), figsize=(7, 7)), quantiles=(0.16,0.5,0.84), title_quantiles=[0.16,0.5,0.84])
+            if save: 
+                fig.savefig(save+"cornerplot.pdf", dpi=300)
         
-        self.results = (linear_fit_params, model)
+        self.results = (linear_fit_params, model, logK_linear_vs_const, logK_sign, logZ)
 
 
     # MASTER FUNCTION
-    def compare_models(self, x, y, yerr, m_span=100, b_span=100, verbose=True):
+    def compare_models(self, x:np.array, y:np.array, yerr:np.array, m_span:int=100, b_span:int=100, verbose:bool=True):
         # 1) Linear model m,b
         like_A = lambda th: self.loglike_linear(th, x, y, yerr)
         pt_A = lambda u: self.ptform_linear(u, m_span, b_span)
@@ -71,22 +74,21 @@ class run_nestedsampler:
         logK_linear_vs_const = logZ_A - logZ_B
 
         if verbose:
-            print("\n========================")
+            print("-"*30)
             print("Linear vs Constant")
-            print("========================")
             print(f"logZ(linear)   = {logZ_A:.3f} ± {logZerr_A:.3f}")
             print(f"logZ(constant) = {logZ_B:.3f} ± {logZerr_B:.3f}")
             print(f"log Bayes factor = {logK_linear_vs_const:.3f}")
         if logK_linear_vs_const > 2.3:
             if verbose:
                 print("Unconstrained model favored.")
-                print("========================")
+                print("-"*30)
         else:
             if verbose:
                 print("Zero-slope model favored")
                 print("========================")
                 model = "zero"
-            return resA, resB, None, None, model
+            return resA, resB, None, None, model, logK_linear_vs_const, None, logZ_B
         
         #if linear is favored: compare sign of slope
         #positive slope
@@ -109,12 +111,14 @@ class run_nestedsampler:
             if logK_sign > 2.3:
                 print("Negative slope favored.")
                 model = "negative"
+                logZ = logZ_neg
             else:
                 print("Positive slope favored.")
                 model = "positive"
+                logZ = logZ_pos
             print("========================")
 
-        return resA, resB, resPos, resNeg, model
+        return resA, resB, resPos, resNeg, model, logK_linear_vs_const, logK_sign, logZ
 
 
     #Dynesty runner
