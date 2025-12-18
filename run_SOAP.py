@@ -5,24 +5,32 @@ import numpy as np
 from utils import *
 
 class run_SOAP:
-    """
-    Wrapper around SOAPv4.
+    """Wrapper around SOAPv4.
     Simulate transit light curve using SOAPv4 (Cristo, E., et al. 2025) to calibrate the local spectra flux.
     Uses Limb darkening toolkit (ldtk) to compute the limb-darkening coefficients.
     
-    Args:
-        time (numpy array): time of observations in BJD.
-        stellar_params (dict): dictionary containing the following stellar parameters: effective temperature and error, superficial gravity and error, metallicity and error, rotation period, radius and stellar inclination.
-        planet_params (dict): dictionary containing the following planetary parameters: orbital period, system scale, planet-to-star radius ratio, mid-transit time, eccentricity, argument of periastron, planetary inclination and spin-orbit angle.
-        min_wave (int): minimum wavelength [nm] of spectrograph.
-        max_wave (int): maximum wavelength [nm] of spectrograph.
-        plot (bool): whether to plot the simulated transit light curve.
-        save (str, optional): path to save the plot.
+    Parameters
+    ----------
+        time : `numpy array` 
+            time of observations in BJD.
+        stellar_params : `dict` 
+            dictionary containing the following stellar parameters: effective temperature and error, superficial gravity and error, metallicity and error, rotation period, radius and stellar inclination.
+        planet_params : `dict`
+            dictionary containing the following planetary parameters: orbital period, system scale, planet-to-star radius ratio, mid-transit time, eccentricity, argument of periastron, planetary inclination and spin-orbit angle.
+        min_wave : `int` 
+            minimum wavelength [nm] of spectrograph.
+        max_wave : `int` 
+            maximum wavelength [nm] of spectrograph.
+        plot : `bool` 
+            whether to plot the simulated transit light curve.
+        save
+            path to save the plot.
 
-    Returns:
-        Flux_SOAP (array): simulated flux from SOAP.
+    Returns
+    -------
+        Flux_SOAP : `numpy array` 
+            simulated flux from SOAP.
     """
-    
     def __init__(self, time:np.array, stellar_params:dict, planet_params:dict, min_wav:int=380, max_wav:int=788, plot:bool=True, save=None):
         
         Teff, Teff_err = stellar_params["Teff"], stellar_params["Teff_err"]
@@ -58,11 +66,30 @@ class run_SOAP:
         if plot == True:
             #self._plot(phases, tr_dur, tr_ingress_egress, Flux_SOAP, save)
             sim.visualize(output=output, plot_type="flux")
+            
+            if save:
+                plt.savefig(save+"SOAP_light_curve.pdf", dpi=200, bbox_inches="tight")
 
         self.flux = Flux_SOAP
 
 
-    def _plot(self, phases, tr_dur, tr_ingress_egress, Flux_SOAP, save=None):
+    def _plot(self, phases:np.array, tr_dur:float, tr_ingress_egress:float, Flux_SOAP:np.array, save=None):
+        """
+        Simple plot of simulated transit light curve.
+
+        Parameters
+        ----------
+        phases : `numpy array`
+            orbital phases.
+        tr_dur : `float`
+            transit duration.
+        tr_ingress_egress : `float`
+            duration between ingress and egress of transit.
+        Flux_SOAP : `numpy array`
+            simulated stellar flux from SOAP.
+        save
+            whether to save the plot and where.
+        """
 
         plt.figure(figsize=(8,5))
 

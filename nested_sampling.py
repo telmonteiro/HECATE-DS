@@ -6,7 +6,7 @@ from dynesty import plotting as dyplot
 
 class run_nestedsampler:
     
-    def __init__(self, x:np.array, y:np.array, yerr:np.array, m_span:int=100, b_span:int=100, verbose:bool=True, plot:bool=True, save=None):
+    def __init__(self, x:np.array, y:np.array, yerr:np.array, m_span:int=100, b_span:int=100, verbose:bool=True, plot:bool=True, save:str=None):
 
         self.x = x
         self.y = y

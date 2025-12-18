@@ -118,35 +118,3 @@ def get_spectra(directory_path:str='Eduardos_code/telluric_corrected_spectra/', 
         snr[i] = hdr['HIERARCH ESO QC ORDER111 SNR'] #order 567.76 nm to 576.42 nm
 
     return spectra, time, airmass, berv, bervmax, snr, list_spectra
-
-
-
-def plot_air_snr(planet_params:dict, time:np.array, airmass:np.array, snr:np.array, save=None):
-
-    phase_mu = get_phase_mu(planet_params, time)
-    phases, tr_dur, tr_ingress_egress = phase_mu.phases, phase_mu.tr_dur, phase_mu.tr_ingress_egress
-
-    fig, ax0 = plt.subplots(figsize=(7,4.5))
-
-    l0 = ax0.axvspan(-tr_dur/2., tr_dur/2., alpha=0.3, color='orange')
-    l1 = ax0.axvspan(tr_ingress_egress/2.-tr_dur/2, -tr_ingress_egress/2.+tr_dur/2, alpha=0.4, color='orange')
-    l2 = ax0.scatter(phases, airmass, color='black')
-
-    ax0.set_xlabel('Orbital Phase', fontsize=14)
-    ax0.set_ylabel('Airmass', fontsize=14)
-    ax0.tick_params(axis="y")
-
-    ax1 = ax0.twinx()
-    l3 = ax1.scatter(phases, snr, color='black', marker="x")
-    ax1.set_ylabel('SNR order 111', fontsize=14)
-    ax1.tick_params(axis="y")
-
-    labels = ['Partially in-transit','Fully in-transit', 'Airmass', 'SNR']
-    fig.legend([l0, l1, l2, l3], labels=labels, loc='lower center', ncol=4, bbox_to_anchor=(0.5, -0.07), fontsize=12)
-
-    plt.tight_layout()
-
-    if save:
-        plt.savefig(save+"airmass_snr.pdf", dpi=300, bbox_inches="tight")
-
-    plt.show()
