@@ -17,7 +17,7 @@ Implemented spectrographs:
 - ESPRESSO
 
 HECATE Documentation
---------
+--------------------
 
 .. toctree::
    :maxdepth: 2
