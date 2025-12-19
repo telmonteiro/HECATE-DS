@@ -1,3 +1,5 @@
+# Personal functions to fetch data.
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
@@ -7,7 +9,38 @@ import glob
 from utils import get_phase_mu
 
 def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_ccfs/', day:str='2021-08-11', index_to_remove:str="last", plot:bool=True):
+    """Fetch ESPRESSO white-light CCFs data.
 
+    Parameters
+    ----------
+    planet_params : `dict`
+        dictionary containing the following planetary parameters: orbital period, system scale, planet-to-star radius ratio, mid-transit time, eccentricity, argument of periastron, planetary inclination and spin-orbit angle.
+    directory_path : `str`
+        path where the white light CCFs are stored.
+    day : `str`
+        in case where the target was observed in more than one night, choose the one to use.
+    index_to_remove : `str`
+        in case the user wants to remove a given CCF a priori.
+    plot : `bool` 
+        whether to plot the CCF profiles colored by orbital phase.
+
+    Returns
+    -------
+    CCFs : `numpy array` 
+        matrix with the CCF profiles (RV, flux and flux error), with shape (N_CCFs, 3, N_points).
+    time : `numpy array` 
+        time of observations in BJD.
+    airmass : `numpy array` 
+        airmass at the time of observation.
+    berv : `numpy array` 
+        BERV at time of observation.
+    bervmax : `numpy array` 
+        maximum BERV.
+    snr : `numpy array` 
+        signal-to-noise ratio of observation.
+    list_ccfs : `str` 
+        list of CCFs file path and names.
+    """
     listfiles = glob.glob(os.path.join(directory_path, '*.fits'))
 
     list_ccfs = [name for name in listfiles if day in name and 'SKY' in name]
@@ -16,6 +49,8 @@ def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_c
     #removing low SNR observations
     if index_to_remove == "last":
         list_ccfs = list_ccfs[:-1]
+    elif index_to_remove == None:
+        list_ccfs = list_ccfs
     else:
         list_ccfs = [x for i,x in enumerate(list_ccfs) if i not in index_to_remove]
 
@@ -75,7 +110,34 @@ def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_c
 
 
 def get_spectra(directory_path:str='Eduardos_code/telluric_corrected_spectra/', day:str='2021-08-11', index_to_remove:str="last"):
+    """Fetch ESPRESSO spectra.
 
+    Parameters
+    ----------
+    directory_path : `str`
+        path where the spectra are stored.
+    day : `str`
+        in case where the target was observed in more than one night, choose the one to use.
+    index_to_remove : `str`
+        in case the user wants to remove a given spectra a priori.
+
+    Returns
+    -------
+    spectra : `numpy array` 
+        matrix with the spectra (wavelenth in air, flux, flux error and quality flag), with shape (N_spectra, 4, N_pixels).
+    time : `numpy array` 
+        time of observations in BJD.
+    airmass : `numpy array` 
+        airmass at the time of observation.
+    berv : `numpy array` 
+        BERV at time of observation.
+    bervmax : `numpy array` 
+        maximum BERV.
+    snr : `numpy array` 
+        signal-to-noise ratio of observation.
+    list_spectra : `str` 
+        list of spectra file path and names.
+    """
     listfiles = glob.glob(os.path.join(directory_path, '*.fits'))
 
     list_spectra = [name for name in listfiles if day in name and 'SKY' in name]

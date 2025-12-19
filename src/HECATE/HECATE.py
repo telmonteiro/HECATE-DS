@@ -107,7 +107,6 @@ class HECATE:
         CCFs_sub_all : `numpy array` 
             matrix with all CCF profiles, flux corrected and subtracted from average out-of-transit, with shape (N_CCFs, 3, N_points).
         """
-
         # simulated light curve
         Flux_SOAP = run_SOAP(self.time, self.stellar_params, self.planet_params, plot=plot["SOAP"]).flux
 
@@ -249,7 +248,6 @@ class HECATE:
         avg_out_of_transit_CCF : `numpy array`
             matrix with the average out-of-transit CCF profile, with shape (3, N_points).
         """
-
         M = CCFs.shape[0]
         K = CCFs.shape[2]
         cov_matrix = np.zeros((M, K, K))
@@ -338,7 +336,6 @@ class HECATE:
         R2_array : `numpy array`
             coefficient of determination of all fits.
         """
-
         if ccf_type == "local":
             N = CCFs.shape[0]
         elif ccf_type == "master":
@@ -449,10 +446,24 @@ class HECATE:
 
 
     def plot_local_params(self, indices_final:np.array, local_params:np.array, master_params:np.array, linear_fit:bool=False, plot_nested:bool=False, save=None):
+        """Plot local CCF parameters (central RV, line-width measure and line-center intensity) in function of orbital phases and mu.
+        Optionally, a linear fit via nested sampling is tested for all cases, plotting the fit and the corresponding residuals.
 
-
-    
-
+        Parameters
+        ----------
+        indices_final : `numpy array`
+            indices of local CCFs to use (to discard bad data).
+        local_params : `numpy array`
+            array of local CCFs parameters (central RV, width, intensity).
+        master_params : `numpy array` 
+            average out-of-transit CCF parameters.
+        linear_fit : `bool`
+            whether to perform a tentative linear fit via nested sampling.
+        plot_nested : `bool`
+            whether to plot the trace and corner plots from the `dynesty` packages.
+        save
+            path to save plots.
+        """
         if linear_fit:
             fig_ph, axes_ph = plt.subplots(nrows=2, ncols=3, figsize=(16,6.2), gridspec_kw={'height_ratios': [1.5, 1]})
             fig_mu, axes_mu = plt.subplots(nrows=2, ncols=3, figsize=(16,6.2), gridspec_kw={'height_ratios': [1.5, 1]})

@@ -1,3 +1,5 @@
+# Wrapper class to use SOAPv4.
+
 import SOAP # type: ignore
 from ldtk import LDPSetCreator, BoxcarFilter
 import matplotlib.pyplot as plt

@@ -1,3 +1,5 @@
+# Class to build CCF from spectra.
+
 from bisect import bisect_left
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,28 +7,34 @@ from matplotlib.colors import Normalize
 from utils import get_phase_mu
 
 class build_CCF:
-
-    def __init__(self, time:np.array, planet_params:dict, spectra:np.array, RV_reference:np.array, mask:np.array, berv:np.array, bervmax:np.array, plot=False):
-        """
-        Docstring for __init__
+    """Class to build CCFs from spectra and a spectral line-list. Method adapted from iCCF.meta.espdr_compute_CCF_fast of iCCF package.
         
-        :param self: Description
-        :param time: Description
-        :type time: np.array
-        :param planet_params: Description
-        :type planet_params: dict
-        :param spectra: Description
-        :type spectra: np.array
-        :param RV_reference: Description
-        :type RV_reference: np.array
-        :param mask: Description
-        :type mask: np.array
-        :param berv: Description
-        :type berv: np.array
-        :param bervmax: Description
-        :type bervmax: np.array
-        :param plot: Description
-        """
+    Parameters
+    ----------
+    time : `numpy array`
+        time of observations in BJD.
+    planet_params : `dict`
+        dictionary containing the following planetary parameters: orbital period, system scale, planet-to-star radius ratio, mid-transit time, eccentricity, argument of periastron, planetary inclination and spin-orbit angle.
+    spectra : `numpy array`
+        matrix with the spectra (wavelenth in air, flux, flux error and quality flag), with shape (N_spectra, 4, N_pixels).
+    RV_reference : `numpy array`
+        RV grid for interpolation.
+    mask : `numpy array`
+        spectral line-list to perform cross-correlation.
+    berv : `numpy array`
+        BERV at time of observation.
+    bervmax : `numpy array`
+        maximum BERV.
+    plot : `bool`
+        whether to plot CCFs in function of 
+    
+    Methods
+    -------
+    compute_CCF(ll, flux, error, quality, RV_reference, mask, berv, bervmax, mask_width=0.5, plot=True)
+        performs cross-correlation between a given spectrum and the line-list following the procedure of iCCF.
+    """
+    def __init__(self, time:np.array, planet_params:dict, spectra:np.array, RV_reference:np.array, mask:np.array, berv:np.array, bervmax:np.array, plot:bool=False):
+
         CCFs = np.zeros((spectra.shape[0], 3, RV_reference.shape[0]))
 
         for i in range(spectra.shape[0]):
@@ -63,36 +71,47 @@ class build_CCF:
             plt.tight_layout()
             plt.show()
 
-    #adapted from iCCF.meta.espdr_compute_CCF_fast
+    # adapted from iCCF.meta.espdr_compute_CCF_fast
     @staticmethod
-    def compute_CCF(ll:np.array, flux:np.array, error:np.array, quality:np.array, RV_reference:np.array, mask:np.array, berv, bervmax, mask_width:float=0.5, plot:bool=True):
-        """
-        Docstring for compute_CCF
+    def compute_CCF(ll:np.array, flux:np.array, error:np.array, quality:np.array, RV_reference:np.array, mask:np.array, berv:float, bervmax:float, mask_width:float=0.5, plot:bool=True):
+        """Performs cross-correlation between a given spectrum and the line-list following the procedure of meta.espdr_compute_CCF_fast of iCCF.
         
-        :param ll: Description
-        :type ll: np.array
-        :param flux: Description
-        :type flux: np.array
-        :param error: Description
-        :type error: np.array
-        :param quality: Description
-        :type quality: np.array
-        :param RV_reference: Description
-        :type RV_reference: np.array
-        :param mask: Description
-        :type mask: np.array
-        :param berv: Description
-        :param bervmax: Description
-        :param mask_width: Description
-        :type mask_width: float
-        :param plot: Description
-        :type plot: bool
-        """
+        Parameters
+        ----------
+        ll : `numpy array`
+            wavelength array in air.
+        flux : `numpy array`
+            flux array.
+        error : `numpy array`
+            flux error array in air.
+        quality : `numpy array`
+            quality flag array in air.
+        RV_reference : `numpy array`
+            RV grid.
+        mask : `numpy array`
+            spectral line-list.
+        berv : `float`
+            BERV value.
+        bervmax : `float`
+            maximum BERV value.
+        mask_width : `float`
+            width of pixel, predefined to 0.5 km/s (ESPRESSO).
+        plot : `bool`
+            wether to plot the computed CCF.
 
-        c = 299792.458
+        Returns
+        -------
+        ccf_flux : `numpy array`
+            computed CCF flux.
+        ccf_error : `numpy array` 
+            computed CCF flux error.
+        ccf_quality : `numpy array`
+            quality flags of used spectra.
+        """
+        c = 299792.458 # km/s
         nx_s2d = flux.size
         n_mask = mask.shape[0]
-        contrast = np.ones_like(mask) #box window
+        contrast = np.ones_like(mask) # box window
         nx_ccf = RV_reference.shape[0]
 
         ccf_flux = np.zeros_like(RV_reference)
