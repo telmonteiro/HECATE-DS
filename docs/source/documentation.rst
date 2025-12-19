@@ -1,16 +1,26 @@
+API Documentation
+=================
+
 .. autosummary::
    :toctree: generated
+   :recursive:
 
-   .. HECATE.HECATE
-   .. HECATE.HECATE.extract_local_CCF
-   .. HECATE.HECATE.sysvel_correction
-   .. HECATE.HECATE.avg_out_of_transit_CCF
-   .. HECATE.HECATE.CCF_parameters
-   .. HECATE.HECATE._local_params_linear_fit
-   .. HECATE.HECATE.plot_local_params
+   HECATE.HECATE
+   HECATE.run_SOAP
+   HECATE.get_data
+   HECATE.build_CCF
+   HECATE.utils
+   HECATE.plots
+   HECATE.nested_sampling
+
+
+HECATE Modules
+==============
 
 .. automodule:: HECATE.run_SOAP
    :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: HECATE.get_data
    :members:
@@ -25,4 +35,4 @@
    :members:
 
 .. automodule:: HECATE.nested_sampling
-    :members:
+   :members:

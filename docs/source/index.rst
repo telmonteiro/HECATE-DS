@@ -22,13 +22,14 @@ Contents
 .. toctree::
   :maxdepth: 1
 
-  get_data.py
-  HECATE.py
-  run_SOAP.py
-  plots.py
-  utils.py
-  build_CCF.py
-  nested_sampling.py
+  documentation
+  HECATE
+  run_SOAP
+  get_data
+  build_CCF
+  utils
+  plots
+  nested_sampling
 
 
 
