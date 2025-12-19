@@ -16,20 +16,13 @@ Implemented spectrographs:
 
 - ESPRESSO
 
-Contents
+HECATE Documentation
 --------
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 2
 
-  documentation
-  HECATE
-  run_SOAP
-  get_data
-  build_CCF
-  utils
-  plots
-  nested_sampling
+   documentation
 
 
 
