@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 import numpy as np
-from utils import get_phase_mu
+from . import utils
 
 
 def plot_air_snr(planet_params:dict, time:np.array, airmass:np.array, snr:np.array, save=None):
@@ -22,7 +22,7 @@ def plot_air_snr(planet_params:dict, time:np.array, airmass:np.array, snr:np.arr
     save
         path to save plot. 
     """
-    phase_mu = get_phase_mu(planet_params, time)
+    phase_mu = utils.get_phase_mu(planet_params, time)
     phases, tr_dur, tr_ingress_egress = phase_mu.phases, phase_mu.tr_dur, phase_mu.tr_ingress_egress
 
     fig, ax0 = plt.subplots(figsize=(7,4.5))

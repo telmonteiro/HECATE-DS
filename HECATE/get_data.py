@@ -6,7 +6,7 @@ from matplotlib.colors import Normalize
 from astropy.io import fits
 import os
 import glob
-from utils import get_phase_mu
+from . import utils
 
 def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_ccfs/', day:str='2021-08-11', index_to_remove:str="last", plot:bool=True):
     """Fetch ESPRESSO white-light CCFs data.
@@ -85,7 +85,7 @@ def get_CCFs(planet_params:dict, directory_path:str='Eduardos_code/white_light_c
         snr[i] = h['HIERARCH ESO QC ORDER111 SNR'] #order 567.76 nm to 576.42 nm
 
     if plot:
-        phases = get_phase_mu(planet_params, time).phases
+        phases = utils.get_phase_mu(planet_params, time).phases
         norm = Normalize(vmin=phases.min(), vmax=phases.max())
         cmap = plt.get_cmap('coolwarm_r')
 

@@ -4,7 +4,7 @@ from bisect import bisect_left
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-from utils import get_phase_mu
+from . import utils
 
 class build_CCF:
     """Class to build CCFs from spectra and a spectral line-list. Method adapted from iCCF.meta.espdr_compute_CCF_fast of iCCF package.
@@ -50,7 +50,7 @@ class build_CCF:
 
         if plot:
             
-            phases = get_phase_mu(planet_params, time).phases
+            phases = utils.get_phase_mu(planet_params, time).phases
             norm = Normalize(vmin=phases.min(), vmax=phases.max())
             cmap = plt.get_cmap('coolwarm_r')
 

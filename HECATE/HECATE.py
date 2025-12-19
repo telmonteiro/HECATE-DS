@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from run_SOAP import run_SOAP
 from nested_sampling import run_nestedsampler
 
-from utils import *
-from plots import *
+from . import utils
+from . import plots
 
 
 class HECATE:
@@ -59,7 +59,7 @@ class HECATE:
     def __init__(self, planet_params:dict, stellar_params:dict, time:np.array, CCFs:np.array):
 
         # Get orbital phases and mu
-        phase_mu = get_phase_mu(planet_params, time)
+        phase_mu = utils.get_phase_mu(planet_params, time)
 
         self.phases = phase_mu.phases
         self.phases_in_indices = phase_mu.in_indices # indices of in-transit phases
@@ -73,8 +73,8 @@ class HECATE:
         self.mu = phase_mu.mu_values
         self.mu_in = self.mu[self.phases_in_indices]
         
-        self.mu_min = get_phase_mu.mu(self.tr_dur/2-self.tr_ingress_egress/2, planet_params)
-        self.mu_max = get_phase_mu.mu(0, planet_params)
+        self.mu_min = utils.get_phase_mu.mu(self.tr_dur/2-self.tr_ingress_egress/2, planet_params)
+        self.mu_max = utils.get_phase_mu.mu(0, planet_params)
 
         self.planet_params = planet_params
         self.stellar_params = stellar_params
@@ -151,7 +151,7 @@ class HECATE:
                 l += 1
 
         if plot["local_CCFs"] == True: #local CCFs + tomography
-            plot_local_CCFs(self, local_CCFs, CCFs_sub_all, RV_reference, ccf_type, save)
+            plots.plot_local_CCFs(self, local_CCFs, CCFs_sub_all, RV_reference, ccf_type, save)
 
         return local_CCFs, CCFs_flux_corr, CCFs_sub_all
     
@@ -191,10 +191,10 @@ class HECATE:
 
         for i in range(CCFs.shape[0]):
 
-            central_rv, continuum, _, _, _, rv, d, de, y_fit = fit_CCF(phases[i], CCFs[i], "raw", model, print_output)
+            central_rv, continuum, _, _, _, rv, d, de, y_fit = utils.fit_CCF(phases[i], CCFs[i], "raw", model, print_output)
 
             if plot_fits:
-                plot_ccf_fit(rv, d, de, y_fit, phases[i], "raw", model, save)
+                plots.plot_ccf_fit(rv, d, de, y_fit, phases[i], "raw", model, save)
             
             y0[i,0] = continuum[0]
             y0[i,1] = continuum[1]
@@ -221,7 +221,7 @@ class HECATE:
             x0_corr[i,1] = np.sqrt( x0[i,1]**2 + poly_cov[0,0]*phases[i]**2 + poly_cov[1,1])
 
         if plot_sys_vel:
-            plot_sysvel_corr(phases, tr_dur, tr_ingress_egress, in_indices, out_indices, x0, poly_coefs, x0_corr, save)
+            plots.plot_sysvel_corr(phases, tr_dur, tr_ingress_egress, in_indices, out_indices, x0, poly_coefs, x0_corr, save)
 
         return CCFs_corr, x0_corr
 
@@ -274,7 +274,7 @@ class HECATE:
             ccf_rv = CCFs[l,2]
 
             # build interpolation matrix for this CCF → target grid
-            W = linear_interpolation_matrix(ccf_rv, RV_reference) 
+            W = utils.linear_interpolation_matrix(ccf_rv, RV_reference) 
 
             y_i = W @ ccf_f # interpolated flux
             cov_new = W @ ccf_f_e @ W.T # propagated covariance
@@ -302,7 +302,7 @@ class HECATE:
         avg_out_of_transit_CCF = np.array([average_out_of_transit_CCF, average_out_of_transit_CCF_e, RV_reference])
         
         if plot:
-            plot_avg_oot_ccf(RV_reference, avg_out_of_transit_CCF, save)
+            plots.plot_avg_oot_ccf(RV_reference, avg_out_of_transit_CCF, save)
 
         return CCF_interp, avg_out_of_transit_CCF
     
@@ -358,9 +358,9 @@ class HECATE:
                 CCF = CCFs
 
             try:
-                central_rv, continuum, intensity, width, R2, rv, d, de, y_fit = fit_CCF(phase, CCF, ccf_type, model, print_output)
+                central_rv, continuum, intensity, width, R2, rv, d, de, y_fit = utils.fit_CCF(phase, CCF, ccf_type, model, print_output)
                 if plot_fit:
-                    plot_ccf_fit(rv, d, de, y_fit, phase, ccf_type, model, save)
+                    plots.plot_ccf_fit(rv, d, de, y_fit, phase, ccf_type, model, save)
             except: # if no fit is achieved
                 central_rv, continuum, intensity, width, R2 = [np.nan, np.nan], [np.nan, np.nan], [np.nan, np.nan], [np.nan, np.nan], np.nan
             
@@ -372,7 +372,7 @@ class HECATE:
             R2_array[i] = R2
 
         if plot_fit and ccf_type == "local":
-            plot_R2(self, R2_array, save)
+            plots.plot_R2(self, R2_array, save)
         
         return central_rv_array, continuum_array, intensity_array, width_array, R2_array
     
