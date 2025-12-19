@@ -8,6 +8,7 @@ HECATE Modules
    :toctree: generated
    :recursive:
 
+   HeCATE.HECATE
    HECATE.build_CCF
    HECATE.get_data
    HECATE.run_SOAP

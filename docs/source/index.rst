@@ -22,6 +22,7 @@ HECATE Documentation
 .. toctree::
    :maxdepth: 2
 
+   index
    documentation
 
 
