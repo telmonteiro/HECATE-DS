@@ -1,28 +1,28 @@
 .. autosummary::
    :toctree: generated
 
-   .. HECATE.HECATE
-   .. HECATE.HECATE.extract_local_CCF
-   .. HECATE.HECATE.sysvel_correction
-   .. HECATE.HECATE.avg_out_of_transit_CCF
-   .. HECATE.HECATE.CCF_parameters
-   .. HECATE.HECATE._local_params_linear_fit
-   .. HECATE.HECATE.plot_local_params
+   .. src.HECATE.HECATE
+   .. src.HECATE.HECATE.extract_local_CCF
+   .. src.HECATE.HECATE.sysvel_correction
+   .. src.HECATE.HECATE.avg_out_of_transit_CCF
+   .. src.HECATE.HECATE.CCF_parameters
+   .. src.HECATE.HECATE._local_params_linear_fit
+   .. src.HECATE.HECATE.plot_local_params
 
-.. automodule:: HECATE.run_SOAP
+.. automodule:: src.HECATE.run_SOAP
    :members:
 
-.. automodule:: HECATE.get_data
+.. automodule:: src.HECATE.get_data
    :members:
 
-.. automodule:: HECATE.build_CCF
+.. automodule:: src.HECATE.build_CCF
    :members:
 
-.. automodule:: HECATE.utils
+.. automodule:: src.HECATE.utils
    :members:
 
-.. automodule:: HECATE.plots
+.. automodule:: src.HECATE.plots
    :members:
 
-   .. automodule:: HECATE.nested_sampling
-   :members:
+.. automodule:: src.HECATE.nested_sampling
+    :members:
