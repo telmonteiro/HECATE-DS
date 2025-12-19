@@ -27,7 +27,7 @@ extensions = [
 
 autosummary_generate = True
 
-autodoc_mock_imports = ["SOAP", "matplotlib", "dynesty", "ldtk"]
+autodoc_mock_imports = ["SOAP", "matplotlib", "dynesty", "ldtk", "numpy", "scipy", "bisect", "astropy"]
 
 templates_path = ['_templates']
 exclude_patterns = []
