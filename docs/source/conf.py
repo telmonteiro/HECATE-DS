@@ -26,6 +26,10 @@ extensions = [
 ]
 
 autosummary_generate = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = True
+napoleon_use_param = True
+napoleon_use_rtype = True
 
 autodoc_mock_imports = ["SOAP", "matplotlib", "dynesty", "ldtk", "numpy", "scipy", "bisect", "astropy"]
 
