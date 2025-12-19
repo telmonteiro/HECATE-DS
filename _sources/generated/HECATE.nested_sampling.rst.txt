@@ -1,0 +1,12 @@
+HECATE.nested\_sampling
+=======================
+
+.. automodule:: HECATE.nested_sampling
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      run_nestedsampler
+   

@@ -1,0 +1,13 @@
+HECATE.get\_data
+================
+
+.. automodule:: HECATE.get_data
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_CCFs
+      get_spectra
+   

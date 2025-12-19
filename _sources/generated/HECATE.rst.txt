@@ -1,0 +1,19 @@
+﻿HECATE
+======
+
+.. automodule:: HECATE
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   HECATE
+   build_CCF
+   get_data
+   nested_sampling
+   plots
+   run_SOAP
+   utils

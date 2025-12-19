@@ -1,0 +1,20 @@
+HECATE.utils
+============
+
+.. automodule:: HECATE.utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      fit_CCF
+      linear_interpolation_matrix
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      get_phase_mu
+      profile_models
+   

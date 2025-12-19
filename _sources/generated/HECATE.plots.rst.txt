@@ -1,0 +1,17 @@
+HECATE.plots
+============
+
+.. automodule:: HECATE.plots
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      plot_R2
+      plot_air_snr
+      plot_avg_oot_ccf
+      plot_ccf_fit
+      plot_local_CCFs
+      plot_sysvel_corr
+   
